@@ -23,13 +23,5 @@
         app:layout_constraintTop_toBottomOf="@id/textview"
         tools:layout_editor_absoluteX="586dp" />
 
-    <Button
-        android:id="@+id/button3"
-        android:layout_width="752dp"
-        android:layout_height="556dp"
-        android:text="Button"
-        tools:layout_editor_absoluteX="305dp"
-        tools:layout_editor_absoluteY="610dp" />
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
