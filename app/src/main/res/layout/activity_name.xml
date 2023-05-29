@@ -1,0 +1,41 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="16dp"
+    android:paddingTop="16dp"
+    android:paddingRight="16dp"
+    android:paddingBottom="16dp"
+    tools:context=".NameActivity">
+
+    <TextView
+        android:id="@+id/textViewWelcome"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Welcome!"
+        android:textSize="18sp"
+        android:layout_marginBottom="8dp"/>
+
+    <LinearLayout
+        android:id="@+id/buttonLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_below="@id/textViewWelcome">
+
+        <Button
+            android:id="@+id/buttonThankYou"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Thank You"/>
+
+        <Button
+            android:id="@+id/buttonDontCallMeThat"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Don't call me that"
+            android:layout_marginStart="8dp"/>
+
+    </LinearLayout>
+
+</RelativeLayout>
