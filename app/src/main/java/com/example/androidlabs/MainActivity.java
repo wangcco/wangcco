@@ -1,60 +1,118 @@
-package com.example.androidlabs;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.graphics.Color;
+import android.os.Bundle;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.BaseAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.Switch;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.os.Bundle;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+
+    private List<TodoItem> itemList;
+    private TodoAdapter adapter;
+
+    private EditText editText;
+    private Switch urgentSwitch;
+    private Button addButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        // Load user's name from SharedPreferences and put it in the EditText
-        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
-        String userName = sharedPreferences.getString("userName", "");
-        EditText editText = findViewById(R.id.editText);
-        editText.setText(userName);
 
-// "Next" button click listener
-        Button nextButton = findViewById(R.id.buttonNext);
-        nextButton.setOnClickListener(new View.OnClickListener() {
+        ListView listView = findViewById(R.id.listView);
+        editText = findViewById(R.id.editText);
+        urgentSwitch = findViewById(R.id.urgentSwitch);
+        addButton = findViewById(R.id.addButton);
+
+        itemList = new ArrayList<>();
+        adapter = new TodoAdapter();
+
+        listView.setAdapter(adapter);
+        addButton.setOnClickListener(new View.OnClickListener() {
             @Override
-
-
             public void onClick(View v) {
-                // Get the current value of the EditText
-                String name = editText.getText().toString();
+                String text = editText.getText().toString();
+                boolean urgent = urgentSwitch.isChecked();
+                TodoItem item = new TodoItem(text, urgent);
 
-                // Save the name to SharedPreferences
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putString("userName", name);
-                editor.apply();
+                itemList.add(item);
+                adapter.notifyDataSetChanged();
 
-                // Launch NameActivity with startActivityForResult
-                Intent intent = new Intent(MainActivity.this, NameActivity.class);
-                startActivityForResult(intent, 1);
+                editText.setText("");
             }
-            @Override
-            protected void onPause() {
-                super.onPause();
+        });
 
-                // Save the current value inside the EditText to SharedPreferences
-                String name = editText.getText().toString();
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putString("userName", name);
-                editor.apply();
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setTitle(R.string.delete_title)
+                        .setMessage(getString(R.string.delete_message, position))
+                        .setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                itemList.remove(position);
+                                adapter.notifyDataSetChanged();
+                                Toast.makeText(MainActivity.this, R.string.item_deleted, Toast.LENGTH_SHORT).show();
+                            }
+                        })
+                        .setNegativeButton(R.string.cancel, null)
+                        .show();
+
+                return true;
             }
-            @Override
-            protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-                super.onActivityResult(requestCode, resultCode, data);
+        });
+    }
 
-                if (requestCode == 1) {
-                    if (resultCode == 0) {
-                        // User wants to change their name
-                        // Implement the
+    private class TodoAdapter extends BaseAdapter {
 
-                    });
+        @Override
+        public int getCount() {
+            return itemList.size();
+        }
 
+        @Override
+        public Object getItem(int position) {
+            return itemList.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            View view = convertView;
+            if (view == null) {
+                view = getLayoutInflater().inflate(R.layout.todo_item, parent, false);
+            }
+
+            TextView todoText = view.findViewById(R.id.todoText);
+            TodoItem item = itemList.get(position);
+            todoText.setText(item.getText());
+
+            if (item.isUrgent()) {
+                view.setBackgroundColor(Color.RED);
+                todoText.setTextColor(Color.WHITE);
+            } else {
+                view.setBackgroundColor(Color.TRANSPARENT);
+                todoText.setTextColor(Color.BLACK);
+            }
+
+            return view;
+        }
     }
 }
