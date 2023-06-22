@@ -1,12 +1,13 @@
 <resources>
     <string name="app_name">TodoApp</string>
-    <string name="type_here">Type Here</string>
+    <string name="type_here">Tapez ici</string>
     <string name="urgent">Urgent</string>
-    <string name="add">Add</string>
-    <string name="delete_title">Do you want to delete this?</string>
-    <string name="delete_message">The selected row is: %1$d</string>
-    <string name="delete">Delete</string>
-    <string name="cancel">Cancel</string>
-    <string name="item_deleted">Item deleted</string>
+    <string name="add">Ajouter</string>
+    <string name="delete_title">Voulez-vous supprimer ceci ?</string>
+    <string name="delete_message">La ligne sélectionnée est : %1$d</string>
+    <string name="delete">Supprimer</string>
+    <string name="cancel">Annuler</string>
+    <string name="item_deleted">Élément supprimé</string>
 </resources>
+
 

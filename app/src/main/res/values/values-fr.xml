@@ -1,11 +1,11 @@
 <resources>
-    <string name="app_name">TodoApp</string>
-    <string name="type_here">Tapez ici</string>
-    <string name="urgent">Urgent</string>
-    <string name="add">Ajouter</string>
-    <string name="delete_title">Voulez-vous supprimer ceci ?</string>
-    <string name="delete_message">La ligne sélectionnée est : %1$d</string>
-    <string name="delete">Supprimer</string>
-    <string name="cancel">Annuler</string>
-    <string name="item_deleted">Élément supprimé</string>
+    <string name="app_name">todo_app</string>
+    <string name="type_here">tapez_ici</string>
+    <string name="urgent">urgent</string>
+    <string name="add">ajouter</string>
+    <string name="delete_title">voulez-vous_supprimer_ceci</string>
+    <string name="delete_message">la_ligne_sélectionnée_est_%1$d</string>
+    <string name="delete">supprimer</string>
+    <string name="cancel">annuler</string>
+    <string name="item_deleted">élément_supprimé</string>
 </resources>

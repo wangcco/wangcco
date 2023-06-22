@@ -1,10 +1,12 @@
+package com.example.androidlabs;
+
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -20,56 +22,63 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private List<TodoItem> itemList;
-    private TodoAdapter adapter;
-
-    private EditText editText;
+    private ListView todoListView;
+    private EditText todoEditText;
     private Switch urgentSwitch;
     private Button addButton;
+
+    private List<TodoItem> todoList;
+    private TodoAdapter todoAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ListView listView = findViewById(R.id.listView);
-        editText = findViewById(R.id.editText);
+        todoListView = findViewById(R.id.todoListView);
+        todoEditText = findViewById(R.id.todoEditText);
         urgentSwitch = findViewById(R.id.urgentSwitch);
         addButton = findViewById(R.id.addButton);
 
-        itemList = new ArrayList<>();
-        adapter = new TodoAdapter();
+        todoList = new ArrayList<>();
+        todoAdapter = new TodoAdapter();
 
-        listView.setAdapter(adapter);
+        todoListView.setAdapter(todoAdapter);
+
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String text = editText.getText().toString();
+                String text = todoEditText.getText().toString().trim();
                 boolean urgent = urgentSwitch.isChecked();
-                TodoItem item = new TodoItem(text, urgent);
 
-                itemList.add(item);
-                adapter.notifyDataSetChanged();
+                if (!text.isEmpty()) {
+                    TodoItem todoItem = new TodoItem(text, urgent);
+                    todoList.add(todoItem);
+                    todoAdapter.notifyDataSetChanged();
 
-                editText.setText("");
+                    todoEditText.setText("");
+                    urgentSwitch.setChecked(false);
+                } else {
+                    Toast.makeText(MainActivity.this, R.string.enter_text, Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
-        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+        todoListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setTitle(R.string.delete_title)
-                        .setMessage(getString(R.string.delete_message, position))
-                        .setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                itemList.remove(position);
-                                adapter.notifyDataSetChanged();
-                                Toast.makeText(MainActivity.this, R.string.item_deleted, Toast.LENGTH_SHORT).show();
-                            }
-                        })
-                        .setNegativeButton(R.string.cancel, null)
-                        .show();
+                builder.setTitle(R.string.delete_title);
+                builder.setMessage(getString(R.string.delete_message, position));
+                builder.setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        todoList.remove(position);
+                        todoAdapter.notifyDataSetChanged();
+                    }
+                });
+                builder.setNegativeButton(R.string.cancel, null);
+                builder.show();
 
                 return true;
             }
@@ -80,12 +89,12 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            return itemList.size();
+            return todoList.size();
         }
 
         @Override
         public Object getItem(int position) {
-            return itemList.get(position);
+            return todoList.get(position);
         }
 
         @Override
@@ -96,20 +105,23 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             View view = convertView;
+
             if (view == null) {
-                view = getLayoutInflater().inflate(R.layout.todo_item, parent, false);
+                LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
+                view = inflater.inflate(R.layout.list_item_todo, parent, false);
             }
 
-            TextView todoText = view.findViewById(R.id.todoText);
-            TodoItem item = itemList.get(position);
-            todoText.setText(item.getText());
+            TodoItem todoItem = (TodoItem) getItem(position);
 
-            if (item.isUrgent()) {
+            TextView todoTextView = view.findViewById(R.id.todoTextView);
+            todoTextView.setText(todoItem.getText());
+
+            if (todoItem.isUrgent()) {
                 view.setBackgroundColor(Color.RED);
-                todoText.setTextColor(Color.WHITE);
+                todoTextView.setTextColor(Color.WHITE);
             } else {
-                view.setBackgroundColor(Color.TRANSPARENT);
-                todoText.setTextColor(Color.BLACK);
+                view.setBackgroundColor(Color.WHITE);
+                todoTextView.setTextColor(Color.BLACK);
             }
 
             return view;
