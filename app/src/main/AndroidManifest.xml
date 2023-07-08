@@ -8,7 +8,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -17,6 +16,11 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".EmptyActivity" />
+
+        <!-- Add the following permission if required -->
+        <!--<uses-permission android:name="android.permission.INTERNET" />-->
     </application>
 
 </manifest>
+

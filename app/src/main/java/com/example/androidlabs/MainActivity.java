@@ -1,130 +1,111 @@
-package com.example.androidlabs;
-
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-import android.widget.Button;
-import android.widget.EditText;
+import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.Switch;
-import android.widget.TextView;
-import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
-
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Scanner;
 
 public class MainActivity extends AppCompatActivity {
 
-    private ListView todoListView;
-    private EditText todoEditText;
-    private Switch urgentSwitch;
-    private Button addButton;
-
-    private List<TodoItem> todoList;
-    private TodoAdapter todoAdapter;
+    private ListView listView;
+    private CharactersAdapter charactersAdapter;
+    private ArrayList<Character> characters;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        todoListView = findViewById(R.id.todoListView);
-        todoEditText = findViewById(R.id.todoEditText);
-        urgentSwitch = findViewById(R.id.urgentSwitch);
-        addButton = findViewById(R.id.addButton);
+        listView = findViewById(R.id.listView);
+        characters = new ArrayList<>();
+        charactersAdapter = new CharactersAdapter(this, characters);
+        listView.setAdapter(charactersAdapter);
 
-        todoList = new ArrayList<>();
-        todoAdapter = new TodoAdapter();
-
-        todoListView.setAdapter(todoAdapter);
-
-        addButton.setOnClickListener(new View.OnClickListener() {
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onClick(View v) {
-                String text = todoEditText.getText().toString().trim();
-                boolean urgent = urgentSwitch.isChecked();
-
-                if (!text.isEmpty()) {
-                    TodoItem todoItem = new TodoItem(text, urgent);
-                    todoList.add(todoItem);
-                    todoAdapter.notifyDataSetChanged();
-
-                    todoEditText.setText("");
-                    urgentSwitch.setChecked(false);
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if (findViewById(R.id.frameLayout) != null) {
+                    // Tablet mode
+                    DetailsFragment detailsFragment = new DetailsFragment();
+                    Bundle bundle = new Bundle();
+                    bundle.putSerializable("character", characters.get(position));
+                    detailsFragment.setArguments(bundle);
+                    getSupportFragmentManager().beginTransaction()
+                            .replace(R.id.frameLayout, detailsFragment)
+                            .commit();
                 } else {
-                    Toast.makeText(MainActivity.this, R.string.enter_text, Toast.LENGTH_SHORT).show();
+                    // Phone mode
+                    Character character = characters.get(position);
+                    Bundle bundle = new Bundle();
+                    bundle.putSerializable("character", character);
+                    startActivity(EmptyActivity.newIntent(MainActivity.this, bundle));
                 }
             }
         });
 
-        todoListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setTitle(R.string.delete_title);
-                builder.setMessage(getString(R.string.delete_message, position));
-                builder.setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        todoList.remove(position);
-                        todoAdapter.notifyDataSetChanged();
-                    }
-                });
-                builder.setNegativeButton(R.string.cancel, null);
-                builder.show();
-
-                return true;
-            }
-        });
+        // Start AsyncTask to fetch data from Star Wars API
+        new FetchCharactersTask().execute();
     }
 
-    private class TodoAdapter extends BaseAdapter {
+    private class FetchCharactersTask extends AsyncTask<Void, Void, String> {
 
         @Override
-        public int getCount() {
-            return todoList.size();
-        }
+        protected String doInBackground(Void... voids) {
+            try {
+                URL url = new URL("https://swapi.dev/api/people/?format=json");
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.connect();
 
-        @Override
-        public Object getItem(int position) {
-            return todoList.get(position);
-        }
+                InputStream inputStream = connection.getInputStream();
+                Scanner scanner = new Scanner(inputStream);
+                scanner.useDelimiter("\\A");
+                String response = scanner.hasNext() ? scanner.next() : "";
 
-        @Override
-        public long getItemId(int position) {
-            return position;
-        }
+                scanner.close();
+                inputStream.close();
+                connection.disconnect();
 
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            View view = convertView;
-
-            if (view == null) {
-                LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
-                view = inflater.inflate(R.layout.list_item_todo, parent, false);
+                return response;
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+            return null;
+        }
 
-            TodoItem todoItem = (TodoItem) getItem(position);
+        @Override
+        protected void onPostExecute(String response) {
+            if (response != null) {
+                try {
+                    JSONObject jsonObject = new JSONObject(response);
+                    JSONArray results = jsonObject.getJSONArray("results");
 
-            TextView todoTextView = view.findViewById(R.id.todoTextView);
-            todoTextView.setText(todoItem.getText());
+                    for (int i = 0; i < results.length(); i++) {
+                        JSONObject characterJson = results.getJSONObject(i);
+                        String name = characterJson.getString("name");
+                        String height = characterJson.getString("height");
+                        String mass = characterJson.getString("mass");
+                        String hairColor = characterJson.getString("hair_color");
+                        String eyeColor = characterJson.getString("eye_color");
 
-            if (todoItem.isUrgent()) {
-                view.setBackgroundColor(Color.RED);
-                todoTextView.setTextColor(Color.WHITE);
-            } else {
-                view.setBackgroundColor(Color.WHITE);
-                todoTextView.setTextColor(Color.BLACK);
+                        Character character = new Character(name, height, mass, hairColor, eyeColor);
+                        characters.add(character);
+                    }
+
+                    charactersAdapter.notifyDataSetChanged();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
-
-            return view;
         }
     }
 }
